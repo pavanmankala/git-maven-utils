@@ -85,7 +85,7 @@ public class TestChildRedirection {
         System.out.println("Exit code" + returnCode);
     }
 
-    @Test
+    //@Test
     public void testGitLogCommand() {
         FileRepositoryBuilder frb = new FileRepositoryBuilder();
         try {
@@ -124,6 +124,22 @@ public class TestChildRedirection {
                     return true;
                 }
             }).call();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testGitRevertCommand() {
+        FileRepositoryBuilder frb = new FileRepositoryBuilder();
+        try {
+            Repository gitRepo =
+                    frb.setGitDir(new File("/home/mankala/work/eclipse-luna-jee/git-maven-utils/.git"))
+                            .readEnvironment().findGitDir().build();
+            Git git = Git.wrap(gitRepo);
+            RevCommit c = git.log().call().iterator().next();
+            RevCommit newCommit = git.revert().include(c).call();
+            System.out.println(newCommit);
         } catch (Throwable e) {
             e.printStackTrace();
         }
