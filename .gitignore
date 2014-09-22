@@ -20,6 +20,7 @@ tmp/**/*
 *.bak
 *.swp
 *~.nib
+*.o
 local.properties
 .classpath
 .settings/
