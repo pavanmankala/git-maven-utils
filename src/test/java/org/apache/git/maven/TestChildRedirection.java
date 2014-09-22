@@ -12,15 +12,27 @@ import java.io.PrintWriter;
 import java.util.Scanner;
 
 import org.apache.commons.io.IOUtils;
+import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.LogCommand;
+import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
+import org.eclipse.jgit.errors.UnsupportedCredentialItem;
+import org.eclipse.jgit.lib.Ref;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.revwalk.RevCommit;
+import org.eclipse.jgit.storage.file.FileRepositoryBuilder;
+import org.eclipse.jgit.transport.CredentialItem;
+import org.eclipse.jgit.transport.CredentialItem.StringType;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.URIish;
 import org.junit.Test;
 
 public class TestChildRedirection {
 
-    @Test
+    // @Test
     public void testChildRedirection() {
         ProcessBuilder builder = new ProcessBuilder();
         builder.command(new String[] {"git", "log"});
-        builder.directory(new File("/home/mankala/work/eclipse-luna-jee/DockingFrames"));
+        builder.directory(new File("/home/mankala/work/eclipse-luna-jee/git-maven-utils"));
         builder.redirectErrorStream(true);
         Process process = null;
         try {
@@ -71,6 +83,50 @@ public class TestChildRedirection {
             // --
         }
         System.out.println("Exit code" + returnCode);
+    }
+
+    @Test
+    public void testGitLogCommand() {
+        FileRepositoryBuilder frb = new FileRepositoryBuilder();
+        try {
+            Repository gitRepo =
+                    frb.setGitDir(new File("/home/mankala/work/eclipse-luna-jee/git-maven-utils/.git"))
+                            .readEnvironment().findGitDir().build();
+            Git git = Git.wrap(gitRepo);
+            for (RevCommit commit : git.log().call()) {
+                System.out.println(commit + "-- " + commit.getCommitterIdent());
+            }
+
+            for (Ref r : git.branchList().call()) {
+                System.out.println(r);
+            }
+            Ref branchRef =
+                    git.branchCreate().setName("myBranch").setUpstreamMode(SetupUpstreamMode.SET_UPSTREAM).call();
+            git.push().add(branchRef).setCredentialsProvider(new CredentialsProvider() {
+                @Override
+                public boolean supports(CredentialItem... items) {
+                    return false;
+                }
+
+                @Override
+                public boolean isInteractive() {
+                    return false;
+                }
+
+                @Override
+                public boolean get(URIish uri, CredentialItem... items) throws UnsupportedCredentialItem {
+                    for (CredentialItem item : items) {
+                        System.out.println(item.getPromptText());
+                        if (item instanceof StringType) {
+                            ((StringType) item).setValue("Kartik.com1!");
+                        }
+                    }
+                    return true;
+                }
+            }).call();
+        } catch (Throwable e) {
+            e.printStackTrace();
+        }
     }
 
     public static void main(String[] args) {
