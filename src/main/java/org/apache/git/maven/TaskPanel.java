@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.ServiceLoader;
 
+import javax.imageio.ImageIO;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
@@ -35,10 +36,13 @@ import javax.swing.BoxLayout;
 import javax.swing.GroupLayout;
 import javax.swing.GroupLayout.Alignment;
 import javax.swing.GroupLayout.ParallelGroup;
+import javax.swing.Icon;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
@@ -57,6 +61,7 @@ import org.apache.git.maven.uiprops.ProcessConfig.ActionConfig;
 
 public class TaskPanel extends JPanel {
     private static final Map<String, GitMavenAction> ACTION_MAP;
+    private static final Icon                        ADD, DELETE;
     private final ProcessConfig                      config;
     private final JPanel                             configPanel;
     private final JTextArea                          console;
@@ -78,6 +83,12 @@ public class TaskPanel extends JPanel {
         }
 
         ACTION_MAP = Collections.unmodifiableMap(actionMap);
+        try {
+            ADD = new ImageIcon(ImageIO.read(TaskPanel.class.getResourceAsStream("/images/add.png")));
+            DELETE = new ImageIcon(ImageIO.read(TaskPanel.class.getResourceAsStream("/images/delete.png")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     public TaskPanel(ProcessConfig config) {
@@ -184,8 +195,9 @@ public class TaskPanel extends JPanel {
         final JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         final JComponent tablePanel =
-                createTwinGroup(Arrays.asList(createTagValueArgumentPanel("Additional Arguments")),
-                        Arrays.asList(createTagValueArgumentPanel("Environment Variables")));
+                createTwinGroup(
+                        Arrays.asList(createTagValueArgumentPanel(config.getTagValueArgs(), "Additional Arguments")),
+                        Arrays.asList(createTagValueArgumentPanel(config.getEnvironment(), "Environment Variables")));
         tablePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         panel.add(new JCheckBox(new AbstractAction() {
@@ -219,14 +231,64 @@ public class TaskPanel extends JPanel {
         return panel;
     }
 
-    JComponent createTagValueArgumentPanel(String title) {
-        TagValueTableModel model = new TagValueTableModel();
-        JPanel panel = new JPanel(new BorderLayout());
-        JScrollPane pane = new JScrollPane(new JTable(model));
-        panel.add(pane);
-        panel.setBorder(BorderFactory.createTitledBorder(title));
+    JComponent createTagValueArgumentPanel(Map<String, String> tabeModelMap, String title) {
+        final TagValueTableModel model = new TagValueTableModel(tabeModelMap);
+        final JTable table = new JTable(model);
+        JScrollPane pane = new JScrollPane(table);
         pane.setPreferredSize(new Dimension(0, 150));
-        pane.setMaximumSize(new Dimension(3000, 150));
+
+        JPanel addDelPanel = new JPanel();
+        addDelPanel.setLayout(new BoxLayout(addDelPanel, BoxLayout.Y_AXIS));
+        addDelPanel.add(Box.createVerticalGlue());
+        addDelPanel.add(new JButton(new AbstractAction() {
+            {
+                putValue(Action.SMALL_ICON, ADD);
+            }
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JTextField key = new JTextField(20);
+                JTextField value = new JTextField(20);
+                JComponent object =
+                        createTwinGroup(Arrays.asList(new JLabel("Key"), new JLabel("Value")),
+                                Arrays.asList(key, value));
+
+                if (JOptionPane.showConfirmDialog(TaskPanel.this, object, "Input Key Value",
+                        JOptionPane.OK_CANCEL_OPTION, JOptionPane.QUESTION_MESSAGE) == JOptionPane.OK_OPTION
+                        && !key.getText().isEmpty()) {
+                    model.add(key.getText(), value.getText());
+                }
+            }
+        }) {
+            {
+                setBorderPainted(false);
+                setContentAreaFilled(false);
+            }
+        });
+        addDelPanel.add(new JButton(new AbstractAction() {
+            {
+                putValue(Action.SMALL_ICON, DELETE);
+            }
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                for (int i : table.getSelectedRows()) {
+                    model.remove(i);
+                }
+            }
+        }) {
+            {
+                setBorderPainted(false);
+                setContentAreaFilled(false);
+            }
+        });
+        addDelPanel.add(Box.createVerticalStrut(5));
+        addDelPanel.add(Box.createVerticalGlue());
+
+        JPanel panel = new JPanel(new BorderLayout());
+        panel.setBorder(BorderFactory.createTitledBorder(title));
+        panel.add(pane, BorderLayout.CENTER);
+        panel.add(addDelPanel, BorderLayout.LINE_END);
         return panel;
     }
 
@@ -342,7 +404,8 @@ public class TaskPanel extends JPanel {
                                 + " ------------------");
                         try {
                             if (!e.getValue().execute(utils, config, actionCfg, log)) {
-                                log.print("FAILURE: execution failed: returned error status");
+                                log.print("FAILURE: execution failed -- action returned error status");
+                                break;
                             }
                         } catch (Throwable e1) {
                             e1.printStackTrace(log);

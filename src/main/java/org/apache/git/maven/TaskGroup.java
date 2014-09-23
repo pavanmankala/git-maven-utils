@@ -15,8 +15,8 @@ public enum TaskGroup {
     GIT("git", Arrays.asList("gitLog.yml"), "Git Functions",
             "Display all available functions specifically releate to Git"),
 
-    MAVEN("maven", Arrays.asList("mavenCompile.yml", "mavenChangeVersions.yml"), "Maven Functions",
-            "Display all available functions specifically releate to Maven"),
+    MAVEN("maven", Arrays.asList("mavenCleanCompile.yml", "mavenCleanInstall.yml", "mavenChangeVersions.yml"),
+            "Maven Functions", "Display all available functions specifically releate to Maven"),
 
     GIT_MAVEN("git+maven", Arrays.asList("mavenCreateBranchNoPush.yml", "mavenCreateTagNoPush.yml",
             "mavenCreateBranch.yml", "mavenTag.yml"), "Maven + Git Functions",

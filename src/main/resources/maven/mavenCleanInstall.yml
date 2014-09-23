@@ -1,0 +1,11 @@
+baseDir:
+environment:
+titleId: Clean Install Maven Project
+actionSequence:
+    - actionName: mavenCleanInstall
+tagValueArgs:
+arguments:
+    mavenHome:
+description: >
+     Compiles and Installs Maven project as if it were done
+     on command line.

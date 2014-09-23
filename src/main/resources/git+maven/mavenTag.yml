@@ -4,8 +4,14 @@ titleId: Create Tag & push
 actionSequence:
     - actionName: mavenUpdatePomVersions
     - actionName: gitCommitAndPush
+      extraConfig:
+          push: true
     - actionName: gitCreateAndPushTag
+      extraConfig:
+          push: true
     - actionName: gitRevertLastCommitAndPush
+      extraConfig:
+          push: true
 tagValueArgs:
 arguments:
     mavenHome:
