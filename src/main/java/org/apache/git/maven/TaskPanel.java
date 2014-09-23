@@ -9,6 +9,9 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -36,6 +39,7 @@ import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTable;
@@ -80,6 +84,33 @@ public class TaskPanel extends JPanel {
         consolePanel.add(new JScrollPane(console));
         console.setEditable(false);
         console.setFont(new Font("Courier New", Font.PLAIN, 12));
+        final JPopupMenu popup = new JPopupMenu();
+        popup.add(new AbstractAction() {
+            {
+                putValue(Action.NAME, "Clear Console");
+            }
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                console.setText("");
+            }
+        });
+        console.addMouseListener(new MouseAdapter() {
+            public void mousePressed(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            public void mouseReleased(MouseEvent e) {
+                maybeShowPopup(e);
+            }
+
+            private void maybeShowPopup(MouseEvent e) {
+                if (e.isPopupTrigger()) {
+                    popup.show(e.getComponent(),
+                            e.getX(), e.getY());
+                }
+            }
+        });
 
         add(new JScrollPane(configPanel), BorderLayout.PAGE_START);
         add(consolePanel, BorderLayout.CENTER);
@@ -314,6 +345,7 @@ public class TaskPanel extends JPanel {
 
                         log.println("--------------- ACTION END : " + e.getKey()
                                 + "------------------");
+                        log.flush();
                     }
                     log.println("########### PROCESS ENDS ###########");
                 } finally {

@@ -27,10 +27,15 @@ public class GitActionUtils {
     private final Git myGit;
 
     public GitActionUtils(String gitBaseDir) throws IOException {
-        myGit = Git.wrap(new FileRepositoryBuilder()
-                .setGitDir(new File(gitBaseDir + File.separator + ".git")).readEnvironment()
-                .findGitDir()
-                .build());
+        File dotGitDir = new File(gitBaseDir + File.separator + ".git");
+        if (dotGitDir.exists() && dotGitDir.isDirectory()) {
+            myGit = Git.wrap(new FileRepositoryBuilder()
+                    .setGitDir(dotGitDir).readEnvironment()
+                    .findGitDir()
+                    .build());
+        } else {
+            throw new RuntimeException("Not a git repo :(");
+        }
     }
 
     public List<String> utilListBranches() {
@@ -50,7 +55,8 @@ public class GitActionUtils {
         return myBranchlist;
     }
 
-    public RevCommit utilCommitAndPush(String message, CredentialsProvider credentials) throws Throwable {
+    public RevCommit utilCommitAndPush(String message, CredentialsProvider credentials)
+            throws Throwable {
         myGit.add().addFilepattern(".").call();
         RevCommit commit = myGit.commit().setMessage(message).call();
         myGit.push().add("HEAD").setCredentialsProvider(credentials).call();
@@ -84,7 +90,7 @@ public class GitActionUtils {
         try {
             Status sts = myGit.status().call();
             return !sts.getUncommittedChanges().isEmpty();
-        } catch(Throwable e) {
+        } catch (Throwable e) {
             return true;
         }
     }

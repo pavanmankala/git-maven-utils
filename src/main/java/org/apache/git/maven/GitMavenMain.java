@@ -4,7 +4,6 @@
 package org.apache.git.maven;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
@@ -23,13 +22,11 @@ import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 
 import org.apache.git.maven.uiprops.ProcessConfig;
 import org.jdesktop.swingx.JXFrame;
 import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.JXTaskPaneContainer;
-import org.pushingpixels.substance.api.skin.SubstanceGraphiteLookAndFeel;
 import org.yaml.snakeyaml.Yaml;
 
 
@@ -44,7 +41,6 @@ public class GitMavenMain extends JXFrame {
         this.viewPanel = new JPanel(new BorderLayout());
 
         // a container to put all JXTaskPane together
-        UIManager.put("TaskPane.titleForeground", Color.BLUE);
         JXTaskPaneContainer taskPaneContainer = new JXTaskPaneContainer();
 
         for (Entry<TaskGroup, List<ProcessConfig>> e : configMap.entrySet()) {
@@ -66,6 +62,7 @@ public class GitMavenMain extends JXFrame {
                         viewPanel.add(tp, BorderLayout.CENTER);
                         viewPanel.revalidate();
                         viewPanel.requestFocusInWindow();
+                        GitMavenMain.this.setTitle(cfg.getTitleId());
                     }
                 });
             }
@@ -127,7 +124,7 @@ public class GitMavenMain extends JXFrame {
         });
         menuBar.add(file);
 
-        JMenu prefs = new JMenu("Preferences");
+        /*JMenu prefs = new JMenu("Preferences");
 
         prefs.add(new AbstractAction() {
             {
@@ -147,7 +144,7 @@ public class GitMavenMain extends JXFrame {
             public void actionPerformed(ActionEvent e) {}
         });
 
-        menuBar.add(prefs);
+        menuBar.add(prefs);*/
 
         setJMenuBar(menuBar);
     }
@@ -186,7 +183,6 @@ public class GitMavenMain extends JXFrame {
 
     private static void startInAWTThread(final Map<TaskGroup, List<ProcessConfig>> configMap)
             throws Throwable {
-        UIManager.setLookAndFeel(new SubstanceGraphiteLookAndFeel());
         GitMavenMain mainFrame = new GitMavenMain(configMap);
         mainFrame.pack();
         mainFrame.restoreWindowSetting();

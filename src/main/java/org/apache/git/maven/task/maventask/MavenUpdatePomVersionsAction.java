@@ -20,7 +20,8 @@ import org.kohsuke.MetaInfServices;
 @MetaInfServices
 public class MavenUpdatePomVersionsAction extends GitMavenAction {
     @Override
-    public boolean execute(GitActionUtils utils, final ProcessConfig cfg, final PrintWriter log) throws Throwable {
+    public boolean execute(GitActionUtils utils, final ProcessConfig cfg, final PrintWriter log)
+            throws Throwable {
         ProcessBuilder builder = new ProcessBuilder();
         builder.command(new String[] {"mvn.bat", "versions:set",
                 "-DnewVersion=" + cfg.getArguments().get(BRANCH_VERSION),
@@ -48,7 +49,10 @@ public class MavenUpdatePomVersionsAction extends GitMavenAction {
             returnCode = process.waitFor();
         } catch (InterruptedException ex) {}
 
-        return returnCode == 0;
+        if (returnCode != 0)
+            throw new RuntimeException("Error execution maven process");
+        else
+            return true;
     }
 
     @Override
