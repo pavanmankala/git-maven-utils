@@ -1,12 +1,12 @@
 baseDir:
 environment:
-titleId: Maven + Git -- Create Branch
+titleId: Maven + Git -- Create Tag
 actionSequence:
     - mavenUpdatePomVersions
     - gitCommitAndPush
-    - gitCreateAndPushBranch
+    - gitCreateAndPushTag
     - gitRevertLastCommitAndPush
 tagValueArgs:
 arguments:
-    branchName:
-    branchVersion:
+    tagName:
+    tagVersion:

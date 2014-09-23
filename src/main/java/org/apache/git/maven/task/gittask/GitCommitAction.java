@@ -17,8 +17,17 @@ import org.kohsuke.MetaInfServices;
 public class GitCommitAction extends GitMavenAction {
 
     @Override
-    public boolean execute(GitActionUtils utils, final ProcessConfig cfg, final PrintWriter log) throws Throwable {
-        utils.utilCommitAndPush(cfg.getArguments().get(COMMIT_MESSAGE), getCredentialProvider(cfg));
+    public boolean execute(GitActionUtils utils, final ProcessConfig cfg, final PrintWriter log)
+            throws Throwable {
+        String message;
+        if (cfg.getArguments().containsKey(BRANCH_NAME)) {
+            message = "Creating Branch - " + cfg.getArguments().get(BRANCH_NAME) + ":"
+                    + cfg.getArguments().get(BRANCH_VERSION);
+        } else {
+            message = "Creating Tag - " + cfg.getArguments().get(TAG_NAME) + ":"
+                    + cfg.getArguments().get(TAG_VERSION);
+        }
+        utils.utilCommitAndPush(message, getCredentialProvider(cfg));
         return true;
     }
 
