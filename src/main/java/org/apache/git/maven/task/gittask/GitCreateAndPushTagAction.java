@@ -23,7 +23,7 @@ public class GitCreateAndPushTagAction extends GitMavenAction {
             return false;
         }
 
-        utils.utilCreateAndPushBranch(cfg.getArguments().get(BRANCH_NAME),
+        utils.utilCreateAndPushTag(cfg.getArguments().get(TAG_NAME),
                 getCredentialProvider(cfg));
 
         return true;

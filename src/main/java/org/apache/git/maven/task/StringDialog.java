@@ -35,7 +35,11 @@ class StringDialog extends JDialog {
                 setVisible(false);
                 dispose();
             }
-        }));
+        }) {
+            {
+                StringDialog.this.getRootPane().setDefaultButton(this);
+            }
+        });
         buttonPanel.add(new JButton(new AbstractAction() {
             {
                 putValue(Action.NAME, "Cancel");

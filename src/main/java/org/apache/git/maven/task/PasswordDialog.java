@@ -35,7 +35,11 @@ class PasswordDialog extends JDialog {
                 setVisible(false);
                 dispose();
             }
-        }));
+        }){
+            {
+                PasswordDialog.this.getRootPane().setDefaultButton(this);
+            }
+        });
         buttonPanel.add(new JButton(new AbstractAction() {
             {
                 putValue(Action.NAME, "Cancel");

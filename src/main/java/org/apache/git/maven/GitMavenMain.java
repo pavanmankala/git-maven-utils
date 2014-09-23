@@ -5,12 +5,16 @@ package org.apache.git.maven;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.prefs.Preferences;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -25,7 +29,7 @@ import org.apache.git.maven.uiprops.ProcessConfig;
 import org.jdesktop.swingx.JXFrame;
 import org.jdesktop.swingx.JXTaskPane;
 import org.jdesktop.swingx.JXTaskPaneContainer;
-import org.pushingpixels.substance.api.skin.SubstanceGraphiteGlassLookAndFeel;
+import org.pushingpixels.substance.api.skin.SubstanceGraphiteLookAndFeel;
 import org.yaml.snakeyaml.Yaml;
 
 
@@ -40,6 +44,7 @@ public class GitMavenMain extends JXFrame {
         this.viewPanel = new JPanel(new BorderLayout());
 
         // a container to put all JXTaskPane together
+        UIManager.put("TaskPane.titleForeground", Color.BLUE);
         JXTaskPaneContainer taskPaneContainer = new JXTaskPaneContainer();
 
         for (Entry<TaskGroup, List<ProcessConfig>> e : configMap.entrySet()) {
@@ -78,6 +83,33 @@ public class GitMavenMain extends JXFrame {
         add(viewPanel, BorderLayout.CENTER);
 
         initMenuBar();
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e1) {
+                saveWindowSetting();
+                for (Entry<TaskGroup, List<ProcessConfig>> e : configMap.entrySet()) {
+                    for (final ProcessConfig cfg : e.getValue()) {
+                        cfg.save();
+                    }
+                }
+            }
+        });
+    }
+
+    void saveWindowSetting() {
+        Preferences dimPrefs = Preferences.userRoot().node(
+                ProcessConfig.class.getName());
+        dimPrefs.putInt("height", this.getHeight());
+        dimPrefs.putInt("width", this.getWidth());
+        dimPrefs.putInt("x", this.getX());
+        dimPrefs.putInt("y", this.getY());
+    }
+
+    void restoreWindowSetting() {
+        Preferences dimPrefs = Preferences.userRoot().node(
+                ProcessConfig.class.getName());
+        setLocation(new Point(dimPrefs.getInt("x", 40), dimPrefs.getInt("y", 40)));
+        setSize(dimPrefs.getInt("width", 700), dimPrefs.getInt("height", 500));
     }
 
     private void initMenuBar() {
@@ -154,8 +186,10 @@ public class GitMavenMain extends JXFrame {
 
     private static void startInAWTThread(final Map<TaskGroup, List<ProcessConfig>> configMap)
             throws Throwable {
+        UIManager.setLookAndFeel(new SubstanceGraphiteLookAndFeel());
         GitMavenMain mainFrame = new GitMavenMain(configMap);
         mainFrame.pack();
+        mainFrame.restoreWindowSetting();
         mainFrame.setVisible(true);
     }
 }

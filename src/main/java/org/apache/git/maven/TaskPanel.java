@@ -7,11 +7,11 @@ import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,8 +20,8 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 import java.util.Map.Entry;
+import java.util.ServiceLoader;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -79,6 +79,7 @@ public class TaskPanel extends JPanel {
         consolePanel.add(new JLabel("<html><u><b>Console:</b></u></html>"), BorderLayout.PAGE_START);
         consolePanel.add(new JScrollPane(console));
         console.setEditable(false);
+        console.setFont(new Font("Courier New", Font.PLAIN, 12));
 
         add(new JScrollPane(configPanel), BorderLayout.PAGE_START);
         add(consolePanel, BorderLayout.CENTER);
@@ -272,10 +273,25 @@ public class TaskPanel extends JPanel {
                 PrintWriter log = new PrintWriter(new OutputStream() {
                     @Override
                     public void write(int b) throws IOException {
-                        console.append(String.valueOf((char) b));
+                        writeToConsole(String.valueOf((char) b));
+                    }
+
+                    @Override
+                    public void write(byte[] b) throws IOException {
+                        writeToConsole(new String(b));
+                    }
+
+                    void writeToConsole(String s) {
+                        console.append(s);
                         console.setCaretPosition(console.getDocument().getLength());
                     }
-                });
+
+                    @Override
+                    public void write(byte[] b, int off, int len) throws IOException {
+                        writeToConsole(new String(b, off, len));
+                    }
+                }, true);
+
                 GitActionUtils utils;
                 try {
                     utils = new GitActionUtils(config.getBaseDir().getAbsolutePath());
@@ -286,12 +302,17 @@ public class TaskPanel extends JPanel {
                 }
                 try {
                     for (Entry<String, GitMavenAction> e : actionSq.entrySet()) {
+                        log.println("--------------- ACTION BEGIN : " + e.getKey()
+                                + "------------------");
                         try {
                             e.getValue().execute(utils, config, log);
                         } catch (Throwable e1) {
                             e1.printStackTrace(log);
                             break;
                         }
+
+                        log.println("--------------- ACTION END : " + e.getKey()
+                                + "------------------");
                     }
                 } finally {
                     utils.utilCloseRepo();
