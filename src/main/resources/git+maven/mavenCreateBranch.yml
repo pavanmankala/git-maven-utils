@@ -1,0 +1,14 @@
+baseDir:
+environment:
+titleId: Maven + Git -- Create Branch
+actionSequence:
+    - mavenUpdatePomVersions
+    - gitCommitAndPush
+    - gitCreateAndPushBranch
+    - gitRevertLastCommitAndPush
+tagValueArgs:
+arguments:
+    userName:
+    branchName:
+    branchVersion:
+    commitMessage:

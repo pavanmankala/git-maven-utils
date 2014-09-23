@@ -25,10 +25,9 @@ public class ProcessConfig {
                                                                }
                                                            };
     private String                    titleId;
-    private String                    command;
+    private List<String>              actionSequence;
     private File                      baseDir;
-    private Map<String, String>       environment;
-    private List<String>              programArgs;
+    private Map<String, String>       environment, tagValueArgs, arguments;
 
     public void setTitleId(String titleId) {
         this.titleId = titleId;
@@ -38,17 +37,33 @@ public class ProcessConfig {
         return titleId;
     }
 
-    public String getCommand() {
-        return command;
+    public List<String> getActionSequence() {
+        return actionSequence;
     }
 
-    public void setCommand(String command) {
-        this.command = command;
+    public void setActionSequence(List<String> actionSequence) {
+        this.actionSequence = actionSequence;
+    }
+
+    public Map<String, String> getArguments() {
+        return arguments;
+    }
+
+    public void setArguments(Map<String, String> arguments_) {
+        Map<String, String> savedMap = getPrefMap("arguments", null);
+        if (savedMap != null && arguments_ != null) {
+            for (Entry<String, String> e : arguments_.entrySet()) {
+                if (savedMap.containsKey(e.getKey())) {
+                    e.setValue(savedMap.get(e.getKey()));
+                }
+            }
+        }
+        this.arguments = arguments_;
     }
 
     public File getBaseDir() {
         if (baseDir == null) {
-            baseDir = new File(getPrefString("baseDir", System.getProperty("user.dir")));
+            baseDir = new File(getPrefObj("baseDir", System.getProperty("user.dir")).toString());
         }
 
         return baseDir;
@@ -58,16 +73,24 @@ public class ProcessConfig {
         this.baseDir = baseDir;
     }
 
-    public List<String> getProgramArgs() {
-        if (programArgs == null) {
-            programArgs = getPrefList("programArgs", null);
+    public void setTagValueArgs(Map<String, String> tagValueArgs_) {
+        Map<String, String> savedMap = getPrefMap("tagValueArgs", null);
+        if (savedMap != null && tagValueArgs_ != null) {
+            for (Entry<String, String> e : tagValueArgs_.entrySet()) {
+                if (savedMap.containsKey(e.getKey())) {
+                    e.setValue(savedMap.get(e.getKey()));
+                }
+            }
         }
-
-        return programArgs;
+        this.tagValueArgs = tagValueArgs_;
     }
 
-    public void setProgramArgs(List<String> programArgs) {
-        this.programArgs = programArgs;
+    public Map<String, String> getTagValueArgs() {
+        if (tagValueArgs == null) {
+            tagValueArgs = getPrefMap("tagValueArgs", null);
+        }
+
+        return tagValueArgs;
     }
 
     public Map<String, String> getEnvironment() {
@@ -78,32 +101,16 @@ public class ProcessConfig {
         return environment;
     }
 
-    public void setEnvironment(Map<String, String> environment) {
-        this.environment = environment;
-    }
-
-    private String getPrefString(String key, String defaultVal) {
-        Preferences prefs = Preferences.userRoot().node(
-                ProcessConfig.class.getName() + "." + titleId);
-        String prefVal;
-
-        if ((prefVal = prefs.get(key, defaultVal)) == defaultVal) {
-            prefs.put(key, prefVal);
+    public void setEnvironment(Map<String, String> environment_) {
+        Map<String, String> savedMap = getPrefMap("environment", null);
+        if (savedMap != null && environment_ != null) {
+            for (Entry<String, String> e : environment_.entrySet()) {
+                if (savedMap.containsKey(e.getKey())) {
+                    e.setValue(savedMap.get(e.getKey()));
+                }
+            }
         }
-
-        return prefVal;
-    }
-
-    boolean getPrefBoolean(String key, boolean defaultVal) {
-        Preferences prefs = Preferences.userRoot().node(
-                ProcessConfig.class.getName() + "." + titleId);
-        boolean prefVal;
-
-        if ((prefVal = prefs.getBoolean(key, defaultVal)) == defaultVal) {
-            prefs.putBoolean(key, prefVal);
-        }
-
-        return prefVal;
+        this.environment = environment_;
     }
 
     private Map<String, String> getPrefMap(String key, Map<String, String> defaultMap) {
@@ -124,7 +131,7 @@ public class ProcessConfig {
         }
     }
 
-    private List<String> getPrefList(String key, List<String> defaultMap) {
+    List<String> getPrefList(String key, List<String> defaultMap) {
         Object prefObj = getPrefObj(key, defaultMap);
         if (prefObj == null) {
             return Collections.emptyList();
@@ -162,6 +169,24 @@ public class ProcessConfig {
             }
         } catch (Throwable e) {
             return defaultObj;
+        }
+    }
+
+    public void save() {
+        Preferences prefs = Preferences.userRoot().node(
+                ProcessConfig.class.getName() + "." + titleId);
+
+        if (baseDir != null) {
+            prefs.put("baseDir", THREAD_LOCAL_XSTREAM.get().toXML(baseDir.getAbsolutePath()));
+        }
+        if (environment != null) {
+            prefs.put("environment", THREAD_LOCAL_XSTREAM.get().toXML(environment));
+        }
+        if (tagValueArgs != null) {
+            prefs.put("tagValueArgs", THREAD_LOCAL_XSTREAM.get().toXML(tagValueArgs));
+        }
+        if (arguments != null) {
+            prefs.put("arguments", THREAD_LOCAL_XSTREAM.get().toXML(arguments));
         }
     }
 }

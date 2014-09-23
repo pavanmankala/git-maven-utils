@@ -4,6 +4,7 @@
 package org.apache.git.maven;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -153,8 +154,6 @@ public class GitMavenMain extends JXFrame {
 
     private static void startInAWTThread(final Map<TaskGroup, List<ProcessConfig>> configMap)
             throws Throwable {
-        UIManager.setLookAndFeel(new SubstanceGraphiteGlassLookAndFeel());
-
         GitMavenMain mainFrame = new GitMavenMain(configMap);
         mainFrame.pack();
         mainFrame.setVisible(true);
