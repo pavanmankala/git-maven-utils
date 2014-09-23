@@ -31,6 +31,6 @@ public class GitCreateAndPushTagAction extends GitMavenAction {
 
     @Override
     public String getActionName() {
-        return "gitCreateAndPushBranch";
+        return "gitCreateAndPushTag";
     }
 }
