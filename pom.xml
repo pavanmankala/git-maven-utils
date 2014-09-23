@@ -5,7 +5,7 @@
 
     <groupId>org.apache.git-maven-utils</groupId>
     <artifactId>git-maven-utils</artifactId>
-    <version>1.0-SNAPSOT</version>
+    <version>1.0.b1-SNAPSHOT</version>
     <packaging>jar</packaging>
 
     <name>git-maven-utils</name>
