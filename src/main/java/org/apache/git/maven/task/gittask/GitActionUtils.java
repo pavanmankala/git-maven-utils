@@ -9,6 +9,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.swing.JOptionPane;
+
 import org.eclipse.jgit.api.CreateBranchCommand.SetupUpstreamMode;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.ListBranchCommand.ListMode;
@@ -29,10 +31,7 @@ public class GitActionUtils {
     public GitActionUtils(String gitBaseDir) throws IOException {
         File dotGitDir = new File(gitBaseDir + File.separator + ".git");
         if (dotGitDir.exists() && dotGitDir.isDirectory()) {
-            myGit = Git.wrap(new FileRepositoryBuilder()
-                    .setGitDir(dotGitDir).readEnvironment()
-                    .findGitDir()
-                    .build());
+            myGit = Git.wrap(new FileRepositoryBuilder().setGitDir(dotGitDir).readEnvironment().findGitDir().build());
         } else {
             throw new RuntimeException("Not a git repo :(");
         }
@@ -55,35 +54,59 @@ public class GitActionUtils {
         return myBranchlist;
     }
 
-    public RevCommit utilCommitAndPush(String message, CredentialsProvider credentials)
-            throws Throwable {
+    public RevCommit utilCommitAndPush(String message, CredentialsProvider credentials, boolean push,
+            boolean askBeforePush) throws Throwable {
         myGit.add().addFilepattern(".").call();
         RevCommit commit = myGit.commit().setMessage(message).call();
+
+        if (!push || (askBeforePush && !askForPush())) {
+            return commit;
+        }
+
         myGit.push().add("HEAD").setCredentialsProvider(credentials).call();
         return commit;
     }
 
-    public RevCommit utilRevertLastCommitAndPush(CredentialsProvider credentials) throws Throwable {
-        RevCommit commit = myGit.revert().include(myGit.log().call().iterator().next()).call();
-        myGit.push().add("HEAD").setCredentialsProvider(credentials).call();
-        return commit;
-    }
-
-    public Ref utilCreateAndPushBranch(String branchName, CredentialsProvider credentials)
+    public RevCommit utilRevertLastCommitAndPush(CredentialsProvider credentials, boolean push, boolean askBeforePush)
             throws Throwable {
-        Ref branchRef =
-                myGit.branchCreate().setName(branchName)
-                        .setUpstreamMode(SetupUpstreamMode.SET_UPSTREAM).call();
+        RevCommit commit = myGit.revert().include(myGit.log().call().iterator().next()).call();
+
+        if (!push || (askBeforePush && !askForPush())) {
+            return commit;
+        }
+
+        myGit.push().add("HEAD").setCredentialsProvider(credentials).call();
+        return commit;
+    }
+
+    public Ref utilCreateAndPushBranch(String branchName, CredentialsProvider credentials, boolean push,
+            boolean askBeforePush) throws Throwable {
+        Ref branchRef = myGit.branchCreate().setName(branchName).setUpstreamMode(SetupUpstreamMode.SET_UPSTREAM).call();
+
+        if (!push || (askBeforePush && !askForPush())) {
+            return branchRef;
+        }
+
         myGit.push().add(branchRef).setCredentialsProvider(credentials).call();
         return branchRef;
     }
 
-    public Ref utilCreateAndPushTag(String tagName, CredentialsProvider credentials)
+    public Ref utilCreateAndPushTag(String tagName, CredentialsProvider credentials, boolean push, boolean askBeforePush)
             throws Throwable {
-        Ref tagRef =
-                myGit.tag().setName(tagName).call();
+        Ref tagRef = myGit.tag().setName(tagName).call();
+
+        if (!push || (askBeforePush && !askForPush())) {
+            return tagRef;
+        }
+
         myGit.push().add(tagRef).setCredentialsProvider(credentials).call();
+
         return tagRef;
+    }
+
+    private boolean askForPush() {
+        return JOptionPane.showConfirmDialog(null, "Push changes to remote ?", "Confirm Push",
+                JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION;
     }
 
     public boolean hasUncommitedChanges() {
@@ -97,5 +120,9 @@ public class GitActionUtils {
 
     public void utilCloseRepo() {
         myGit.close();
+    }
+
+    public Git getGit() {
+        return myGit;
     }
 }

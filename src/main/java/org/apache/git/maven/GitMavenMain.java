@@ -4,6 +4,7 @@
 package org.apache.git.maven;
 
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
@@ -48,25 +49,31 @@ public class GitMavenMain extends JXFrame {
             actionPane.setTitle(e.getKey().getDisplayName());
             for (final ProcessConfig cfg : e.getValue()) {
                 actionPane.add(new AbstractAction() {
-                    private TaskPanel tp;
-
+                    private final TaskPanel tp = new TaskPanel(cfg);
                     {
                         putValue(Action.NAME, cfg.getTitleId());
-                        tp = new TaskPanel(cfg);
+                        putValue(Action.SHORT_DESCRIPTION, cfg.getDescription());
                     }
 
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        tp = new TaskPanel(cfg);
+                        for (Component comp : viewPanel.getComponents()) {
+                            if (comp instanceof TaskPanel) {
+                                ((TaskPanel) comp).getConfig().save();
+                            }
+                        }
+
                         viewPanel.removeAll();
                         viewPanel.add(tp, BorderLayout.CENTER);
                         viewPanel.revalidate();
+                        viewPanel.repaint();
                         viewPanel.requestFocusInWindow();
                         GitMavenMain.this.setTitle(cfg.getTitleId());
                     }
                 });
             }
 
+            actionPane.setToolTipText(e.getKey().getDescription());
             taskPaneContainer.add(actionPane);
         }
 
@@ -94,8 +101,7 @@ public class GitMavenMain extends JXFrame {
     }
 
     void saveWindowSetting() {
-        Preferences dimPrefs = Preferences.userRoot().node(
-                ProcessConfig.class.getName());
+        Preferences dimPrefs = Preferences.userRoot().node(ProcessConfig.class.getName());
         dimPrefs.putInt("height", this.getHeight());
         dimPrefs.putInt("width", this.getWidth());
         dimPrefs.putInt("x", this.getX());
@@ -103,8 +109,7 @@ public class GitMavenMain extends JXFrame {
     }
 
     void restoreWindowSetting() {
-        Preferences dimPrefs = Preferences.userRoot().node(
-                ProcessConfig.class.getName());
+        Preferences dimPrefs = Preferences.userRoot().node(ProcessConfig.class.getName());
         setLocation(new Point(dimPrefs.getInt("x", 40), dimPrefs.getInt("y", 40)));
         setSize(dimPrefs.getInt("width", 700), dimPrefs.getInt("height", 500));
     }
@@ -124,27 +129,19 @@ public class GitMavenMain extends JXFrame {
         });
         menuBar.add(file);
 
-        /*JMenu prefs = new JMenu("Preferences");
-
-        prefs.add(new AbstractAction() {
-            {
-                putValue(Action.NAME, "Maven ...");
-            }
-
-            @Override
-            public void actionPerformed(ActionEvent e) {}
-        });
-
-        prefs.add(new AbstractAction() {
-            {
-                putValue(Action.NAME, "Java ...");
-            }
-
-            @Override
-            public void actionPerformed(ActionEvent e) {}
-        });
-
-        menuBar.add(prefs);*/
+        /*
+         * JMenu prefs = new JMenu("Preferences");
+         * 
+         * prefs.add(new AbstractAction() { { putValue(Action.NAME, "Maven ..."); }
+         * 
+         * @Override public void actionPerformed(ActionEvent e) {} });
+         * 
+         * prefs.add(new AbstractAction() { { putValue(Action.NAME, "Java ..."); }
+         * 
+         * @Override public void actionPerformed(ActionEvent e) {} });
+         * 
+         * menuBar.add(prefs);
+         */
 
         setJMenuBar(menuBar);
     }
@@ -156,9 +153,8 @@ public class GitMavenMain extends JXFrame {
             List<ProcessConfig> configs = new ArrayList<>();
             for (String file : grp.getConfFiles()) {
                 String resource = "/" + grp.getBaseDir() + "/" + file;
-                ProcessConfig config = yaml.loadAs(
-                        GitMavenMain.class.getResourceAsStream(resource),
-                        ProcessConfig.class);
+                ProcessConfig config =
+                        yaml.loadAs(GitMavenMain.class.getResourceAsStream(resource), ProcessConfig.class);
 
                 if (config != null) {
                     configs.add(config);
@@ -181,8 +177,7 @@ public class GitMavenMain extends JXFrame {
         });
     }
 
-    private static void startInAWTThread(final Map<TaskGroup, List<ProcessConfig>> configMap)
-            throws Throwable {
+    private static void startInAWTThread(final Map<TaskGroup, List<ProcessConfig>> configMap) throws Throwable {
         GitMavenMain mainFrame = new GitMavenMain(configMap);
         mainFrame.pack();
         mainFrame.restoreWindowSetting();

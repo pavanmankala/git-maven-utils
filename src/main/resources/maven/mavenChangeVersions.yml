@@ -1,0 +1,14 @@
+baseDir:
+environment:
+titleId: Change POM versions
+actionSequence:
+    - actionName: mavenUpdatePomVersions
+      promptBeforeInvocation: false
+      runSubsequentActions: false
+tagValueArgs:
+arguments:
+    mavenHome:
+    newVersion:
+description: >
+     Changes Maven project's version locally,
+     no commit/push is done.

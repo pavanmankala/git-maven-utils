@@ -41,7 +41,8 @@ public class TestGitUtils {
         cfg.setArguments(map);
         cfg.setBaseDir(new File("C:\\Opt\\Work\\git-maven-utils\\"));
         try {
-            action.execute(new GitActionUtils("C:\\Opt\\Work\\git-maven-utils\\"), cfg, new PrintWriter(System.out));
+            action.execute(new GitActionUtils("C:\\Opt\\Work\\git-maven-utils\\"), cfg,
+                    new ProcessConfig.ActionConfig(), new PrintWriter(System.out));
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }

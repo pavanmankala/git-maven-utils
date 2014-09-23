@@ -35,7 +35,7 @@ class PasswordDialog extends JDialog {
                 setVisible(false);
                 dispose();
             }
-        }){
+        }) {
             {
                 PasswordDialog.this.getRootPane().setDefaultButton(this);
             }

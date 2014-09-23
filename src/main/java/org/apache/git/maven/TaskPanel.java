@@ -11,7 +11,6 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
@@ -19,6 +18,8 @@ import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,25 +53,32 @@ import javax.swing.event.DocumentListener;
 import org.apache.git.maven.task.GitMavenAction;
 import org.apache.git.maven.task.gittask.GitActionUtils;
 import org.apache.git.maven.uiprops.ProcessConfig;
+import org.apache.git.maven.uiprops.ProcessConfig.ActionConfig;
 
 public class TaskPanel extends JPanel {
-    private static final ServiceLoader<GitMavenAction> ACTIONS       = ServiceLoader
-                                                                             .load(GitMavenAction.class);
-    private final ProcessConfig                        config;
-    private final JPanel                               configPanel;
-    private final JTextArea                            console;
-    private final Action                               executeAction = new AbstractAction() {
-                                                                         {
-                                                                             putValue(Action.NAME,
-                                                                                     "Execute");
-                                                                         }
+    private static final Map<String, GitMavenAction> ACTION_MAP;
+    private final ProcessConfig                      config;
+    private final JPanel                             configPanel;
+    private final JTextArea                          console;
+    private final Action                             executeAction = new AbstractAction() {
+                                                                       {
+                                                                           putValue(Action.NAME, "Execute");
+                                                                       }
 
-                                                                         @Override
-                                                                         public void actionPerformed(
-                                                                                 ActionEvent e) {
-                                                                             execute();
-                                                                         }
-                                                                     };
+                                                                       @Override
+                                                                       public void actionPerformed(ActionEvent e) {
+                                                                           execute();
+                                                                       }
+                                                                   };
+
+    static {
+        Map<String, GitMavenAction> actionMap = new HashMap<>();
+        for (GitMavenAction action : ServiceLoader.load(GitMavenAction.class)) {
+            actionMap.put(action.getActionName(), action);
+        }
+
+        ACTION_MAP = Collections.unmodifiableMap(actionMap);
+    }
 
     public TaskPanel(ProcessConfig config) {
         super(new BorderLayout());
@@ -79,9 +87,6 @@ public class TaskPanel extends JPanel {
         this.configPanel = new JPanel();
 
 
-        JPanel consolePanel = new JPanel(new BorderLayout(3, 3));
-        consolePanel.add(new JLabel("<html><u><b>Console:</b></u></html>"), BorderLayout.PAGE_START);
-        consolePanel.add(new JScrollPane(console));
         console.setEditable(false);
         console.setFont(new Font("Courier New", Font.PLAIN, 12));
         final JPopupMenu popup = new JPopupMenu();
@@ -106,14 +111,17 @@ public class TaskPanel extends JPanel {
 
             private void maybeShowPopup(MouseEvent e) {
                 if (e.isPopupTrigger()) {
-                    popup.show(e.getComponent(),
-                            e.getX(), e.getY());
+                    popup.show(e.getComponent(), e.getX(), e.getY());
                 }
             }
         });
 
         add(new JScrollPane(configPanel), BorderLayout.PAGE_START);
-        add(consolePanel, BorderLayout.CENTER);
+        add(new JScrollPane(console) {
+            {
+                setBorder(BorderFactory.createTitledBorder("Console"));
+            }
+        }, BorderLayout.CENTER);
         initConfigArea();
     }
 
@@ -175,9 +183,9 @@ public class TaskPanel extends JPanel {
     JComponent createCollapsibleTablePanel() {
         final JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        final JComponent tablePanel = createTwinGroup(
-                Arrays.asList(createTagValueArgumentPanel("Additional Arguments")),
-                Arrays.asList(createTagValueArgumentPanel("Environment Variables")));
+        final JComponent tablePanel =
+                createTwinGroup(Arrays.asList(createTagValueArgumentPanel("Additional Arguments")),
+                        Arrays.asList(createTagValueArgumentPanel("Environment Variables")));
         tablePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
         panel.add(new JCheckBox(new AbstractAction() {
@@ -238,8 +246,7 @@ public class TaskPanel extends JPanel {
         return createTwinGroup(labels, argumentsTf);
     }
 
-    private JComponent createTwinGroup(Collection<? extends JComponent> item1,
-            Collection<? extends JComponent> item2) {
+    private JComponent createTwinGroup(Collection<? extends JComponent> item1, Collection<? extends JComponent> item2) {
         int size = item1.size();
         if (size != item2.size()) {
             throw new RuntimeException("no of item1 != no of item2");
@@ -253,8 +260,7 @@ public class TaskPanel extends JPanel {
         layout.setAutoCreateContainerGaps(true);
 
         GroupLayout.SequentialGroup hGroup = layout.createSequentialGroup();
-        ParallelGroup hItem1Group = layout.createParallelGroup(), hItem2Group = layout
-                .createParallelGroup();
+        ParallelGroup hItem1Group = layout.createParallelGroup(), hItem2Group = layout.createParallelGroup();
 
         Iterator<? extends JComponent> item1Iter = item1.iterator();
         Iterator<? extends JComponent> item2Iter = item2.iterator();
@@ -275,8 +281,8 @@ public class TaskPanel extends JPanel {
         item2Iter = item2.iterator();
 
         while (item1Iter.hasNext() && item2Iter.hasNext()) {
-            vGroup.addGroup(layout.createParallelGroup(Alignment.BASELINE)
-                    .addComponent(item1Iter.next()).addComponent(item2Iter.next()));
+            vGroup.addGroup(layout.createParallelGroup(Alignment.BASELINE).addComponent(item1Iter.next())
+                    .addComponent(item2Iter.next()));
         }
 
         layout.setVerticalGroup(vGroup);
@@ -287,14 +293,12 @@ public class TaskPanel extends JPanel {
     private void execute() {
         config.save();
 
-        final Map<String, GitMavenAction> actionSq = new LinkedHashMap<>();
-        for (String actionName : config.getActionSequence()) {
-            actionSq.put(actionName, null);
-        }
+        final Map<ActionConfig, GitMavenAction> actionSq = new LinkedHashMap<>();
+        for (ActionConfig actionCfg : config.getActionSequence()) {
+            GitMavenAction action = ACTION_MAP.get(actionCfg.getActionName());
 
-        for (GitMavenAction action : ACTIONS) {
-            if (actionSq.containsKey(action.getActionName())) {
-                actionSq.put(action.getActionName(), action);
+            if (action != null) {
+                actionSq.put(actionCfg, action);
             }
         }
 
@@ -326,25 +330,24 @@ public class TaskPanel extends JPanel {
                 GitActionUtils utils;
                 try {
                     utils = new GitActionUtils(config.getBaseDir().getAbsolutePath());
-                } catch (IOException e1) {
-                    log.println("Unable to create Git repo @ "
-                            + config.getBaseDir().getAbsolutePath());
+                } catch (Throwable e1) {
+                    log.println("Unable to find Git repo @ " + config.getBaseDir().getAbsolutePath());
                     return;
                 }
                 try {
                     log.println("########### PROCESS BEGIN ###########");
-                    for (Entry<String, GitMavenAction> e : actionSq.entrySet()) {
-                        log.println("--------------- ACTION BEGIN : " + e.getKey()
-                                + "------------------");
+                    for (Entry<ActionConfig, GitMavenAction> e : actionSq.entrySet()) {
+                        ActionConfig actionCfg = e.getKey();
+                        log.println("--------------- ACTION BEGIN : " + actionCfg.getActionName()
+                                + " ------------------");
                         try {
-                            e.getValue().execute(utils, config, log);
+                            e.getValue().execute(utils, config, actionCfg, log);
                         } catch (Throwable e1) {
                             e1.printStackTrace(log);
                             break;
                         }
 
-                        log.println("--------------- ACTION END : " + e.getKey()
-                                + "------------------");
+                        log.println("--------------- ACTION END : " + actionCfg.getActionName() + " ------------------");
                         log.flush();
                     }
                     log.println("########### PROCESS ENDS ###########");
@@ -353,6 +356,10 @@ public class TaskPanel extends JPanel {
                 }
             }
         });
+    }
+
+    public ProcessConfig getConfig() {
+        return config;
     }
 
     class MyTextField extends JTextField {

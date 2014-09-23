@@ -21,19 +21,10 @@ import org.kohsuke.MetaInfServices;
  *
  */
 @MetaInfServices
-public class MavenUpdatePomVersionsAction extends GitMavenAction {
+public class MavenCleanCompileAction extends GitMavenAction {
     @Override
     public boolean execute(GitActionUtils utils, final ProcessConfig cfg, ActionConfig actionCfg, final PrintWriter log)
             throws Throwable {
-        String version = cfg.getArguments().get(BRANCH_VERSION);
-
-        if (version == null) {
-            version = cfg.getArguments().get(TAG_VERSION);
-        }
-
-        if (version == null) {
-            version = cfg.getArguments().get(NEW_VERSION);
-        }
         ProcessBuilder builder = new ProcessBuilder();
         String m2Home = cfg.getArguments().get(MAVEN_HOME);
         if (m2Home == null) {
@@ -50,8 +41,7 @@ public class MavenUpdatePomVersionsAction extends GitMavenAction {
             }
         }
 
-        builder.command(new String[] {m2Home + (OsUtils.isWindows() ? "mvn.bat" : "mvn"), "versions:set",
-                "-DnewVersion=" + version, "-DgenerateBackupPoms=false"});
+        builder.command(new String[] {m2Home + (OsUtils.isWindows() ? "mvn.bat" : "mvn"), "clean", "compile"});
         builder.directory(cfg.getBaseDir());
         builder.redirectErrorStream(true);
         Process process = builder.start();
@@ -85,6 +75,6 @@ public class MavenUpdatePomVersionsAction extends GitMavenAction {
 
     @Override
     public String getActionName() {
-        return "mavenUpdatePomVersions";
+        return "mavenCleanCompile";
     }
 }

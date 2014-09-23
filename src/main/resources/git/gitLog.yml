@@ -1,0 +1,9 @@
+baseDir:
+environment:
+titleId: Show Commit Log
+actionSequence:
+    - actionName: gitLog
+tagValueArgs:
+arguments:
+description: >
+     Shows commit log for the Git repo

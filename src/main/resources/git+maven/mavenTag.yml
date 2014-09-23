@@ -1,12 +1,16 @@
 baseDir:
 environment:
-titleId: Maven + Git -- Create Tag
+titleId: Create Tag & push
 actionSequence:
-    - mavenUpdatePomVersions
-    - gitCommitAndPush
-    - gitCreateAndPushTag
-    - gitRevertLastCommitAndPush
+    - actionName: mavenUpdatePomVersions
+    - actionName: gitCommitAndPush
+    - actionName: gitCreateAndPushTag
+    - actionName: gitRevertLastCommitAndPush
 tagValueArgs:
 arguments:
+    mavenHome:
     tagName:
     tagVersion:
+description: >
+     Creates a tag in Git repository and
+     pushes the same to remote

@@ -1,22 +1,21 @@
 baseDir:
 environment:
-titleId: Create Branch & push
+titleId: Create Branch
 actionSequence:
     - actionName: mavenUpdatePomVersions
     - actionName: gitCommitAndPush
       extraConfig:
-          push: true
+          push: false
     - actionName: gitCreateAndPushBranch
       extraConfig:
-          push: true
+          push: false
     - actionName: gitRevertLastCommitAndPush
       extraConfig:
-          push: true
+          push: false
 tagValueArgs:
 arguments:
     mavenHome:
     branchName:
     branchVersion:
 description: >
-     Creates a branch in Git repository and
-     pushes the same to remote
+     Creates a branch in Git repository locally.

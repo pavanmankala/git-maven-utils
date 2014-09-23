@@ -1,2 +1,11 @@
-titleId: Maven Compile
 baseDir:
+environment:
+titleId: Clean Compile Maven Project
+actionSequence:
+    - actionName: mavenCleanCompile
+tagValueArgs:
+arguments:
+    mavenHome:
+description: >
+     Compiles Maven project as if it were done
+     on command line.

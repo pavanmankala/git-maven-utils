@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 
 import org.apache.git.maven.task.gittask.GitActionUtils;
 import org.apache.git.maven.uiprops.ProcessConfig;
+import org.apache.git.maven.uiprops.ProcessConfig.ActionConfig;
 import org.eclipse.jgit.errors.UnsupportedCredentialItem;
 import org.eclipse.jgit.transport.CredentialItem;
 import org.eclipse.jgit.transport.CredentialItem.CharArrayType;
@@ -23,7 +24,7 @@ import org.eclipse.jgit.transport.URIish;
  */
 
 public abstract class GitMavenAction implements ConfigConstants {
-    public abstract boolean execute(GitActionUtils utils, ProcessConfig cfg, PrintWriter log)
+    public abstract boolean execute(GitActionUtils utils, ProcessConfig cfg, ActionConfig actionCfg, PrintWriter log)
             throws Throwable;
 
     public abstract String getActionName();
@@ -67,5 +68,14 @@ public abstract class GitMavenAction implements ConfigConstants {
                 return true;
             }
         };
+    }
+
+    protected <T> T getExtraParam(Class<T> cz, ActionConfig cfg, String key) {
+        Object val = cfg.getExtraConfig().get(key);
+        if (val != null && cz.isAssignableFrom(val.getClass())) {
+            return cz.cast(val);
+        } else {
+            return null;
+        }
     }
 }

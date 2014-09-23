@@ -7,6 +7,7 @@ import java.io.PrintWriter;
 
 import org.apache.git.maven.task.GitMavenAction;
 import org.apache.git.maven.uiprops.ProcessConfig;
+import org.apache.git.maven.uiprops.ProcessConfig.ActionConfig;
 import org.kohsuke.MetaInfServices;
 
 /**
@@ -17,14 +18,17 @@ import org.kohsuke.MetaInfServices;
 public class GitCreateAndPushBranchAction extends GitMavenAction {
 
     @Override
-    public boolean execute(GitActionUtils utils, final ProcessConfig cfg, final PrintWriter log) throws Throwable {
+    public boolean execute(GitActionUtils utils, final ProcessConfig cfg, ActionConfig actionCfg, final PrintWriter log)
+            throws Throwable {
         if (utils.hasUncommitedChanges()) {
             log.write("has uncommitted changes... exiting");
             return false;
         }
 
-        utils.utilCreateAndPushBranch(cfg.getArguments().get(BRANCH_NAME),
-                getCredentialProvider(cfg));
+        boolean promptForPush = getExtraParam(Boolean.class, actionCfg, "promptBeforePush") == Boolean.TRUE;
+        boolean push = getExtraParam(Boolean.class, actionCfg, "push") == Boolean.TRUE;
+
+        utils.utilCreateAndPushBranch(cfg.getArguments().get(BRANCH_NAME), getCredentialProvider(cfg), promptForPush, push);
 
         return true;
     }

@@ -23,7 +23,8 @@ public class ExecutionService {
             public void run() {
                 try {
                     r.run();
-                } catch (Throwable e) {}
+                } catch (Throwable e) {
+                }
             }
         });
     }

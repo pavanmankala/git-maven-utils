@@ -24,10 +24,18 @@ public class ProcessConfig {
                                                                    return new XStream();
                                                                }
                                                            };
-    private String                    titleId;
-    private List<String>              actionSequence;
+    private String                    titleId, description;
+    private List<ActionConfig>        actionSequence;
     private File                      baseDir;
     private Map<String, String>       environment, tagValueArgs, arguments;
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public String getDescription() {
+        return description;
+    }
 
     public void setTitleId(String titleId) {
         this.titleId = titleId;
@@ -37,11 +45,11 @@ public class ProcessConfig {
         return titleId;
     }
 
-    public List<String> getActionSequence() {
+    public List<ActionConfig> getActionSequence() {
         return actionSequence;
     }
 
-    public void setActionSequence(List<String> actionSequence) {
+    public void setActionSequence(List<ActionConfig> actionSequence) {
         this.actionSequence = actionSequence;
     }
 
@@ -124,7 +132,7 @@ public class ProcessConfig {
                 Map<?, ?> readMap = (Map<?, ?>) prefObj;
 
                 for (Entry<?, ?> e : readMap.entrySet()) {
-                    retMap.put(e.getKey().toString(), e.getValue().toString());
+                    retMap.put(e.getKey().toString(), e.getValue() == null ? "" : e.getValue().toString());
                 }
             }
             return retMap;
@@ -152,8 +160,7 @@ public class ProcessConfig {
 
     private Object getPrefObj(String key, Object defaultObj) {
         try {
-            Preferences prefs = Preferences.userRoot().node(
-                    ProcessConfig.class.getName() + "." + titleId);
+            Preferences prefs = Preferences.userRoot().node(ProcessConfig.class.getName() + "." + titleId);
             String prefVal;
 
             if ((prefVal = prefs.get(key, null)) == null) {
@@ -173,20 +180,64 @@ public class ProcessConfig {
     }
 
     public void save() {
-        Preferences prefs = Preferences.userRoot().node(
-                ProcessConfig.class.getName() + "." + titleId);
+        Preferences prefs = Preferences.userRoot().node(ProcessConfig.class.getName() + "." + titleId);
+        XStream serializer = THREAD_LOCAL_XSTREAM.get();
 
         if (baseDir != null) {
-            prefs.put("baseDir", THREAD_LOCAL_XSTREAM.get().toXML(baseDir.getAbsolutePath()));
+            prefs.put("baseDir", serializer.toXML(baseDir.getAbsolutePath()));
         }
         if (environment != null) {
-            prefs.put("environment", THREAD_LOCAL_XSTREAM.get().toXML(environment));
+            prefs.put("environment", serializer.toXML(environment));
         }
         if (tagValueArgs != null) {
-            prefs.put("tagValueArgs", THREAD_LOCAL_XSTREAM.get().toXML(tagValueArgs));
+            prefs.put("tagValueArgs", serializer.toXML(tagValueArgs));
         }
         if (arguments != null) {
-            prefs.put("arguments", THREAD_LOCAL_XSTREAM.get().toXML(arguments));
+            prefs.put("arguments", serializer.toXML(arguments));
         }
+    }
+
+    public static class ActionConfig {
+        private String              actionName;
+        private boolean             promptBeforeInvocation = false;
+        private boolean             runSubsequentActions = true;
+        private Map<String, Object> extraConfig;
+
+        public void setExtraConfig(Map<String, Object> extraConfig) {
+            this.extraConfig = extraConfig;
+        }
+
+        public Map<String, Object> getExtraConfig() {
+            if (extraConfig == null) {
+                return Collections.emptyMap();
+            } else {
+                return extraConfig;
+            }
+        }
+
+        public String getActionName() {
+            return actionName;
+        }
+
+        public void setActionName(String actionName) {
+            this.actionName = actionName;
+        }
+
+        public boolean isPromptBeforeInvocation() {
+            return promptBeforeInvocation;
+        }
+
+        public void setPromptBeforeInvocation(boolean promptBeforeInvocation) {
+            this.promptBeforeInvocation = promptBeforeInvocation;
+        }
+
+        public boolean isRunSubsequentActions() {
+            return runSubsequentActions;
+        }
+
+        public void setRunSubsequentActions(boolean runSubsequentActions) {
+            this.runSubsequentActions = runSubsequentActions;
+        }
+
     }
 }
