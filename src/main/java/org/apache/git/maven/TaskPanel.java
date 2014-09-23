@@ -341,7 +341,9 @@ public class TaskPanel extends JPanel {
                         log.println("--------------- ACTION BEGIN : " + actionCfg.getActionName()
                                 + " ------------------");
                         try {
-                            e.getValue().execute(utils, config, actionCfg, log);
+                            if (!e.getValue().execute(utils, config, actionCfg, log)) {
+                                log.print("FAILURE: execution failed: returned error status");
+                            }
                         } catch (Throwable e1) {
                             e1.printStackTrace(log);
                             break;

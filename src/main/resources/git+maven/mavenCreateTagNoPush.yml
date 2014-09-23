@@ -6,7 +6,7 @@ actionSequence:
     - actionName: gitCommitAndPush
       extraConfig:
           push: false
-    - actionName: gitCreateAndPushBranch
+    - actionName: gitCreateAndPushTag
       extraConfig:
           push: false
     - actionName: gitRevertLastCommitAndPush

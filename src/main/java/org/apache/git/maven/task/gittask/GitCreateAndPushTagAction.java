@@ -27,7 +27,7 @@ public class GitCreateAndPushTagAction extends GitMavenAction {
         boolean promptForPush = getExtraParam(Boolean.class, actionCfg, "promptBeforePush") == Boolean.TRUE;
         boolean push = getExtraParam(Boolean.class, actionCfg, "push") == Boolean.TRUE;
 
-        utils.utilCreateAndPushTag(cfg.getArguments().get(TAG_NAME), getCredentialProvider(cfg), promptForPush, push);
+        utils.utilCreateAndPushTag(cfg.getArguments().get(TAG_NAME), getCredentialProvider(cfg), push, promptForPush);
 
         return true;
     }
