@@ -37,7 +37,7 @@ public class TestGitUtils {
         MavenUpdatePomVersionsAction action = new MavenUpdatePomVersionsAction();
         ProcessConfig cfg = new ProcessConfig();
         Map<String, String> map = new HashMap<>();
-        map.put(ConfigConstants.NEW_VERSION, "1.1-SNAPSHOT");
+        map.put(ConfigConstants.BRANCH_VERSION, "1.1-SNAPSHOT");
         cfg.setArguments(map);
         cfg.setBaseDir(new File("C:\\Opt\\Work\\git-maven-utils\\"));
         try {
