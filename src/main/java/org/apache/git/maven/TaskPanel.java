@@ -74,6 +74,7 @@ public class TaskPanel extends JPanel {
         commandPanel.add(createArgumentPanel());
         commandPanel.add(Box.createVerticalStrut(5));
 
+        JPanel tablePanel = new JPanel();
         TagValueTableModel model = new TagValueTableModel();
         JTable table = new JTable(model);
         commandPanel.add(new JScrollPane(table));
