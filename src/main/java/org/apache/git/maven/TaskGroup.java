@@ -14,7 +14,7 @@ import java.util.List;
 public enum TaskGroup {
     GIT("git", Arrays.asList("gitLog.yml"), "Git Functions"),
     MAVEN("maven", Arrays.asList("mavenCompile.yml"), "Maven Functions"),
-    GIT_MAVEN("git+maven", Arrays.asList("mavenCreateBranch.yml", "mavenTag.yml"), "Git+Maven Functions"), ;
+    GIT_MAVEN("git+maven", Arrays.asList("mavenCreateBranch.yml", "mavenTag.yml"), "Maven + Git Functions"), ;
 
     private final List<String> confFiles;
     private final String       baseDir, displayName;

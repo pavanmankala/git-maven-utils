@@ -301,6 +301,7 @@ public class TaskPanel extends JPanel {
                     return;
                 }
                 try {
+                    log.println("########### PROCESS BEGIN ###########");
                     for (Entry<String, GitMavenAction> e : actionSq.entrySet()) {
                         log.println("--------------- ACTION BEGIN : " + e.getKey()
                                 + "------------------");
@@ -314,6 +315,7 @@ public class TaskPanel extends JPanel {
                         log.println("--------------- ACTION END : " + e.getKey()
                                 + "------------------");
                     }
+                    log.println("########### PROCESS ENDS ###########");
                 } finally {
                     utils.utilCloseRepo();
                 }
