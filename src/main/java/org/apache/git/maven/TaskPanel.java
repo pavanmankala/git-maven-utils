@@ -127,7 +127,9 @@ public class TaskPanel extends JPanel {
             }
         });
 
-        add(new JScrollPane(configPanel), BorderLayout.PAGE_START);
+        DisabledPanel dp = new DisabledPanel(configPanel);
+        dp.setEnabled(false);
+        add(new JScrollPane(dp), BorderLayout.PAGE_START);
         add(new JScrollPane(console) {
             {
                 setBorder(BorderFactory.createTitledBorder("Console"));
