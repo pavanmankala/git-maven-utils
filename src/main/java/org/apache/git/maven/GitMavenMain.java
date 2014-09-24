@@ -98,6 +98,7 @@ public class GitMavenMain extends JXFrame {
                 }
             }
         });
+        setTitle ("Git Maven Utils");
     }
 
     void saveWindowSetting() {
@@ -131,15 +132,15 @@ public class GitMavenMain extends JXFrame {
 
         /*
          * JMenu prefs = new JMenu("Preferences");
-         * 
+         *
          * prefs.add(new AbstractAction() { { putValue(Action.NAME, "Maven ..."); }
-         * 
+         *
          * @Override public void actionPerformed(ActionEvent e) {} });
-         * 
+         *
          * prefs.add(new AbstractAction() { { putValue(Action.NAME, "Java ..."); }
-         * 
+         *
          * @Override public void actionPerformed(ActionEvent e) {} });
-         * 
+         *
          * menuBar.add(prefs);
          */
 
