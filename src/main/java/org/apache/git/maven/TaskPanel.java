@@ -128,7 +128,6 @@ public class TaskPanel extends JPanel {
         });
 
         DisabledPanel dp = new DisabledPanel(configPanel);
-        dp.setEnabled(false);
         add(new JScrollPane(dp), BorderLayout.PAGE_START);
         add(new JScrollPane(console) {
             {
@@ -136,6 +135,7 @@ public class TaskPanel extends JPanel {
             }
         }, BorderLayout.CENTER);
         initConfigArea();
+        dp.setEnabled(false);
     }
 
     private void initConfigArea() {
