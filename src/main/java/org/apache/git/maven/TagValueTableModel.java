@@ -85,12 +85,19 @@ public class TagValueTableModel extends AbstractTableModel {
     }
 
     @Override
-    public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
-        super.setValueAt(aValue, rowIndex, columnIndex);
-    }
-
-    @Override
     public boolean isCellEditable(int rowIndex, int columnIndex) {
         return false;
+    }
+
+    public void remove(int[] selectedRows) {
+        List<Entry<String, String>> removeRows = new ArrayList<>();
+        for (int row : selectedRows) {
+            Entry<String, String> rowE= tagValueModel.get(row);
+            backing.remove(rowE.getKey());
+            removeRows.add(rowE);
+        }
+
+        tagValueModel.removeAll(removeRows);
+        fireTableDataChanged();
     }
 }

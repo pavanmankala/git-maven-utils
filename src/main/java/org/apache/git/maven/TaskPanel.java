@@ -65,13 +65,11 @@ public class TaskPanel extends JPanel {
     private final ProcessConfig                      config;
     private final JPanel                             configPanel;
     private final JTextArea                          console;
+    private final DisabledPanel                      disabledPanel;
     private final Action                             executeAction = new AbstractAction() {
-                                                                       {
-                                                                           putValue(Action.NAME, "Execute");
-                                                                       }
-
                                                                        @Override
-                                                                       public void actionPerformed(ActionEvent e) {
+                                                                       public void actionPerformed(
+                                                                               ActionEvent e) {
                                                                            execute();
                                                                        }
                                                                    };
@@ -85,7 +83,8 @@ public class TaskPanel extends JPanel {
         ACTION_MAP = Collections.unmodifiableMap(actionMap);
         try {
             ADD = new ImageIcon(ImageIO.read(TaskPanel.class.getResourceAsStream("/images/add.png")));
-            DELETE = new ImageIcon(ImageIO.read(TaskPanel.class.getResourceAsStream("/images/delete.png")));
+            DELETE = new ImageIcon(ImageIO.read(TaskPanel.class
+                    .getResourceAsStream("/images/delete.png")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }
@@ -93,6 +92,7 @@ public class TaskPanel extends JPanel {
 
     public TaskPanel(ProcessConfig config) {
         super(new BorderLayout());
+        executeAction.putValue(Action.NAME, "Execute");
         this.config = config;
         this.console = new JTextArea();
         this.configPanel = new JPanel();
@@ -101,16 +101,15 @@ public class TaskPanel extends JPanel {
         console.setEditable(false);
         console.setFont(new Font("Courier New", Font.PLAIN, 12));
         final JPopupMenu popup = new JPopupMenu();
-        popup.add(new AbstractAction() {
-            {
-                putValue(Action.NAME, "Clear Console");
-            }
-
+        Action clearConsole = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 console.setText("");
             }
-        });
+        };
+        clearConsole.putValue(Action.NAME, "Clear Console");
+        popup.add(clearConsole);
+
         console.addMouseListener(new MouseAdapter() {
             public void mousePressed(MouseEvent e) {
                 maybeShowPopup(e);
@@ -127,15 +126,12 @@ public class TaskPanel extends JPanel {
             }
         });
 
-        DisabledPanel dp = new DisabledPanel(configPanel);
-        add(new JScrollPane(dp), BorderLayout.PAGE_START);
-        add(new JScrollPane(console) {
-            {
-                setBorder(BorderFactory.createTitledBorder("Console"));
-            }
-        }, BorderLayout.CENTER);
+        disabledPanel = new DisabledPanel(configPanel);
+        add(new JScrollPane(disabledPanel), BorderLayout.PAGE_START);
+        JScrollPane consoleScroll = new JScrollPane(console);
+        consoleScroll.setBorder(BorderFactory.createTitledBorder("Console"));
+        add(consoleScroll, BorderLayout.CENTER);
         initConfigArea();
-        dp.setEnabled(false);
     }
 
     private void initConfigArea() {
@@ -169,11 +165,7 @@ public class TaskPanel extends JPanel {
         configPanel.add(Box.createVerticalStrut(5));
         configPanel.add(createExecutePanel());
         configPanel.add(Box.createVerticalStrut(5));
-        configPanel.add(new JSeparator() {
-            {
-                setAlignmentX(Component.LEFT_ALIGNMENT);
-            }
-        });
+        configPanel.add(new JSeparator());
     }
 
     private JComponent createCommandPanel() {
@@ -198,15 +190,13 @@ public class TaskPanel extends JPanel {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         final JComponent tablePanel =
                 createTwinGroup(
-                        Arrays.asList(createTagValueArgumentPanel(config.getTagValueArgs(), "Additional Arguments")),
-                        Arrays.asList(createTagValueArgumentPanel(config.getEnvironment(), "Environment Variables")));
+                        Arrays.asList(createTagValueArgumentPanel(config.getTagValueArgs(),
+                                "Additional Arguments")),
+                        Arrays.asList(createTagValueArgumentPanel(config.getEnvironment(),
+                                "Environment Variables")));
         tablePanel.setAlignmentX(Component.LEFT_ALIGNMENT);
 
-        panel.add(new JCheckBox(new AbstractAction() {
-            {
-                putValue(Action.NAME, "Show More");
-            }
-
+        Action showMore = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JCheckBox box = ((JCheckBox) e.getSource());
@@ -218,12 +208,12 @@ public class TaskPanel extends JPanel {
                 }
                 TaskPanel.this.revalidate();
             }
-        }) {
-            {
-                setSelected(false);
-                setAlignmentX(Component.LEFT_ALIGNMENT);
-            }
-        });
+        };
+        showMore.putValue(Action.NAME, "Show More");
+        JCheckBox showMoreCheck = new JCheckBox(showMore);
+        showMoreCheck.setSelected(false);
+        showMoreCheck.setAlignmentX(Component.LEFT_ALIGNMENT);
+        panel.add(showMoreCheck);
 
         panel.add(tablePanel);
 
@@ -242,11 +232,7 @@ public class TaskPanel extends JPanel {
         JPanel addDelPanel = new JPanel();
         addDelPanel.setLayout(new BoxLayout(addDelPanel, BoxLayout.Y_AXIS));
         addDelPanel.add(Box.createVerticalGlue());
-        addDelPanel.add(new JButton(new AbstractAction() {
-            {
-                putValue(Action.SMALL_ICON, ADD);
-            }
-
+        Action add = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 JTextField key = new JTextField(20);
@@ -261,29 +247,26 @@ public class TaskPanel extends JPanel {
                     model.add(key.getText(), value.getText());
                 }
             }
-        }) {
-            {
-                setBorderPainted(false);
-                setContentAreaFilled(false);
-            }
-        });
-        addDelPanel.add(new JButton(new AbstractAction() {
-            {
-                putValue(Action.SMALL_ICON, DELETE);
-            }
+        };
+        add.putValue(Action.SMALL_ICON, ADD);
 
+        JButton butt = new JButton(add);
+        butt.setBorderPainted(false);
+        butt.setContentAreaFilled(false);
+        addDelPanel.add(butt);
+
+        Action del = new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                for (int i : table.getSelectedRows()) {
-                    model.remove(i);
-                }
+                model.remove(table.getSelectedRows());
             }
-        }) {
-            {
-                setBorderPainted(false);
-                setContentAreaFilled(false);
-            }
-        });
+        };
+        del.putValue(Action.SMALL_ICON, DELETE);
+        butt = new JButton(del);
+        butt.setBorderPainted(false);
+        butt.setContentAreaFilled(false);
+
+        addDelPanel.add(butt);
         addDelPanel.add(Box.createVerticalStrut(5));
         addDelPanel.add(Box.createVerticalGlue());
 
@@ -310,7 +293,8 @@ public class TaskPanel extends JPanel {
         return createTwinGroup(labels, argumentsTf);
     }
 
-    private JComponent createTwinGroup(Collection<? extends JComponent> item1, Collection<? extends JComponent> item2) {
+    private JComponent createTwinGroup(Collection<? extends JComponent> item1,
+            Collection<? extends JComponent> item2) {
         int size = item1.size();
         if (size != item2.size()) {
             throw new RuntimeException("no of item1 != no of item2");
@@ -324,7 +308,8 @@ public class TaskPanel extends JPanel {
         layout.setAutoCreateContainerGaps(true);
 
         GroupLayout.SequentialGroup hGroup = layout.createSequentialGroup();
-        ParallelGroup hItem1Group = layout.createParallelGroup(), hItem2Group = layout.createParallelGroup();
+        ParallelGroup hItem1Group = layout.createParallelGroup(), hItem2Group = layout
+                .createParallelGroup();
 
         Iterator<? extends JComponent> item1Iter = item1.iterator();
         Iterator<? extends JComponent> item2Iter = item2.iterator();
@@ -345,7 +330,8 @@ public class TaskPanel extends JPanel {
         item2Iter = item2.iterator();
 
         while (item1Iter.hasNext() && item2Iter.hasNext()) {
-            vGroup.addGroup(layout.createParallelGroup(Alignment.BASELINE).addComponent(item1Iter.next())
+            vGroup.addGroup(layout.createParallelGroup(Alignment.BASELINE)
+                    .addComponent(item1Iter.next())
                     .addComponent(item2Iter.next()));
         }
 
@@ -414,7 +400,8 @@ public class TaskPanel extends JPanel {
                             break;
                         }
 
-                        log.println("--------------- ACTION END : " + actionCfg.getActionName() + " ------------------");
+                        log.println("--------------- ACTION END : " + actionCfg.getActionName()
+                                + " ------------------");
                         log.flush();
                     }
                     log.println("########### PROCESS ENDS ###########");

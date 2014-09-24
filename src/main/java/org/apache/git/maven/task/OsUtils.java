@@ -7,6 +7,6 @@ public class OsUtils {
     }
 
     public static boolean isWindows() {
-        return OS.contains("windows");
+        return OS.contains("Windows");
     }
 }
